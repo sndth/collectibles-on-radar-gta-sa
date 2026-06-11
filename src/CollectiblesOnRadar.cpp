@@ -91,9 +91,9 @@ private:
 
             const CVector& tagPos = Util::s_tagList[i].tag->pos;
 
-            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(tagPos));
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, tagPos.To2D());
             const float mag = CRadar::LimitRadarPoint(radarSpace); // returns distance
-            const float distance = DistanceBetweenPoints(CVector2D(playaPos), CVector2D(tagPos));
+            const float distance = CVector2D::Distance(playaPos.To2D(), tagPos.To2D());
             if (mag <= 1.f) // (distance < CRadar::m_radarRange)
             {
                 CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
@@ -137,7 +137,7 @@ private:
 
             const CVector& tagPos = Util::s_tagList[indexTag].tag->pos;
 
-            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(tagPos));
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, tagPos.To2D());
             CRadar::LimitRadarPoint(radarSpace);
             CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
@@ -192,9 +192,9 @@ private:
                     continue;
                 }
 
-                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(pickupPos));
+                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, pickupPos.To2D());
                 const float mag = CRadar::LimitRadarPoint(radarSpace); // returns distance
-                const float distance = DistanceBetweenPoints(CVector2D(playaPos), CVector2D(pickupPos));
+                const float distance = CVector2D::Distance(playaPos.To2D(), pickupPos.To2D());
                 if (mag <= 1.f) // (distance < CRadar::m_radarRange)
                 {
                     CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
@@ -275,7 +275,7 @@ private:
         {
             const CVector pickupPos(CPickups::aPickUps[indexOyster].m_vecPos.Uncompressed());
 
-            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(pickupPos));
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, pickupPos.To2D());
             CRadar::LimitRadarPoint(radarSpace);
             CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
@@ -294,7 +294,7 @@ private:
         {
             const CVector pickupPos(CPickups::aPickUps[indexHorse].m_vecPos.Uncompressed());
 
-            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(pickupPos));
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, pickupPos.To2D());
             CRadar::LimitRadarPoint(radarSpace);
             CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
@@ -313,7 +313,7 @@ private:
         {
             const CVector pickupPos(CPickups::aPickUps[indexSnap].m_vecPos.Uncompressed());
 
-            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(pickupPos));
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, pickupPos.To2D());
             CRadar::LimitRadarPoint(radarSpace);
             CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
@@ -353,9 +353,9 @@ private:
                     (usj.start1.y + usj.start2.y) / 2.f,
                     usj.start1.z);
 
-                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(usjPos));
+                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, usjPos.To2D());
                 const float mag = CRadar::LimitRadarPoint(radarSpace); // returns distance
-                const float distance = DistanceBetweenPoints(CVector2D(playaPos), CVector2D(usjPos));
+                const float distance = CVector2D::Distance(playaPos.To2D(), usjPos.To2D());
                 if (mag <= 1.f) // (distance < CRadar::m_radarRange)
                 {
                     CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
@@ -400,7 +400,7 @@ private:
                 (usj.start1.y + usj.start2.y) / 2.f,
                 usj.start1.z);
 
-            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(usjPos));
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, usjPos.To2D());
             CRadar::LimitRadarPoint(radarSpace);
             CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
@@ -438,7 +438,7 @@ private:
 
             const CVector& tagPos = Util::s_tagList[i].tag->pos;
 
-            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(tagPos));
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, tagPos.To2D());
             //CRadar::LimitRadarPoint(radarSpace);
             CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
@@ -483,7 +483,7 @@ private:
                 if (pickupPos.z >= 960.f)
                     continue;
 
-                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(pickupPos));
+                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, pickupPos.To2D());
                 //CRadar::LimitRadarPoint(radarSpace);
                 CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
@@ -545,7 +545,7 @@ private:
                     (usj.start1.y + usj.start2.y) / 2.f,
                     usj.start1.z);
 
-                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, CVector2D(usjPos));
+                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, usjPos.To2D());
                 //CRadar::LimitRadarPoint(radarSpace);
                 CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
 
