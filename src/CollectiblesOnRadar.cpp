@@ -8,6 +8,7 @@
 
 #include "Util.h"
 #include "Settings.h"
+#include "ExportVehicles.h"
 
 class CollectiblesOnRadar
 {
@@ -45,6 +46,11 @@ public:
             CPlayerPed* playa = FindPlayerPed();
             if (s_modEnabled && playa)
             {
+                if (Settings::s_drawExportVehicles)
+                {
+                    ExportVehicles::update();
+                }
+
                 const CVector& playaPos = FindPlayerCentreOfWorld_NoSniperShift(0);
                 if (!FrontEndMenuManager.m_bDrawRadarOrMap) // radar
                 {
@@ -53,6 +59,7 @@ public:
                         drawRadarTags(playaPos);
                         drawRadarPickups(playaPos); // oysters, horseshoes and snapshots
                         drawRadarUSJs(playaPos);
+                        drawRadarExports(playaPos);
                     }
                 }
                 else // map
@@ -61,6 +68,7 @@ public:
                     drawMapTags(playaPos, showHeight);
                     drawMapPickups(playaPos, showHeight); // oysters, horseshoes and snapshots
                     drawMapUSJs(playaPos, showHeight);
+                    drawMapExports();
                 }
             }
         };
@@ -416,6 +424,150 @@ private:
         }
     }
 
+    static void drawExportIcon(float x, float y, bool onMap)
+    {
+        const float stretchX = RsGlobal.maximumWidth / 640.f;
+        const float stretchY = RsGlobal.maximumHeight / 448.f;
+
+        if (onMap) // map positions are in the menu's base space
+        {
+            x *= stretchX;
+            y *= stretchY;
+        }
+
+        const float halfW = Settings::s_exportSpriteSize * stretchX * 0.5f;
+        const float halfH = Settings::s_exportSpriteSize * stretchY * 0.5f;
+        CRadar::RadarBlipSprites[Settings::s_exportSpriteId].Draw(
+            CRect(x - halfW, y - halfH, x + halfW, y + halfH), CRGBA(255, 255, 255, 255));
+    }
+
+    static void drawRadarExports(const CVector& playaPos)
+    {
+        if (!Settings::s_drawExportVehicles)
+        {
+            return;
+        }
+
+        static CVector2D radarSpace, screenSpace;
+
+        CVehicle* playaVehicle = FindPlayerVehicle(-1, false);
+        const short playaModel = playaVehicle != nullptr ? playaVehicle->m_nModelIndex : -1;
+
+        bool modelIconDrawn[ExportVehicles::TOTAL_SPAWNS] = {};
+
+        for (int i = 0; i < ExportVehicles::TOTAL_SPAWNS; i++)
+        {
+            if (!ExportVehicles::s_wanted[i] || ExportVehicles::s_spawns[i].model == playaModel)
+            {
+                continue;
+            }
+
+            const CVehicle* tracked = ExportVehicles::s_vehicles[i];
+
+            const CVector2D worldPos = tracked != nullptr
+                ? tracked->GetPosition().To2D()
+                : CVector2D(ExportVehicles::s_spawns[i].x, ExportVehicles::s_spawns[i].y);
+
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, worldPos);
+            if (CRadar::LimitRadarPoint(radarSpace) <= 1.f)
+            {
+                CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
+                drawExportIcon(screenSpace.x, screenSpace.y, false);
+
+                if (tracked != nullptr)
+                {
+                    modelIconDrawn[i] = true;
+                }
+            }
+        }
+
+        // at most one icon per model - the icon sticks to its vehicle as long as
+        // it stays on the radar, then moves to the nearest matching one
+        CVehicle* nearestVehicle[ExportVehicles::TOTAL_SPAWNS] = {};
+        float nearestDistance[ExportVehicles::TOTAL_SPAWNS];
+        static int stickyVehicleRef[ExportVehicles::TOTAL_SPAWNS]; // 0 = none
+
+        for (int i = 0; i < CPools::ms_pVehiclePool->m_nSize; i++)
+        {
+            CVehicle* vehicle = CPools::ms_pVehiclePool->GetAt(i);
+            if (vehicle == nullptr || !isIconCandidate(vehicle, playaModel))
+            {
+                continue;
+            }
+
+            const int spawnIndex = ExportVehicles::wantedSpawnIndexForModel(vehicle->m_nModelIndex);
+            if (spawnIndex < 0 || modelIconDrawn[spawnIndex])
+            {
+                continue; // not wanted, or its tracked spawn car is already on the radar
+            }
+
+            const float distance = CVector2D::Distance(playaPos.To2D(), vehicle->GetPosition().To2D());
+            if (nearestVehicle[spawnIndex] == nullptr || distance < nearestDistance[spawnIndex])
+            {
+                nearestVehicle[spawnIndex] = vehicle;
+                nearestDistance[spawnIndex] = distance;
+            }
+        }
+
+        for (int i = 0; i < ExportVehicles::TOTAL_SPAWNS; i++)
+        {
+            CVehicle* sticky = stickyVehicleRef[i] != 0 ? CPools::ms_pVehiclePool->GetAtRef(stickyVehicleRef[i]) : nullptr;
+            if (sticky != nullptr
+                && (sticky->m_nModelIndex != ExportVehicles::s_spawns[i].model
+                    || !ExportVehicles::s_wanted[i] || modelIconDrawn[i]
+                    || !isIconCandidate(sticky, playaModel)))
+            {
+                sticky = nullptr;
+            }
+
+            stickyVehicleRef[i] = 0;
+
+            if (sticky != nullptr)
+            {
+                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, sticky->GetPosition().To2D());
+                if (CRadar::LimitRadarPoint(radarSpace) <= 1.f)
+                {
+                    CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
+                    drawExportIcon(screenSpace.x, screenSpace.y, false);
+                    stickyVehicleRef[i] = CPools::ms_pVehiclePool->GetRef(sticky);
+                    continue;
+                }
+            }
+
+            if (nearestVehicle[i] != nullptr)
+            {
+                CRadar::TransformRealWorldPointToRadarSpace(radarSpace, nearestVehicle[i]->GetPosition().To2D());
+                if (CRadar::LimitRadarPoint(radarSpace) <= 1.f)
+                {
+                    CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
+                    drawExportIcon(screenSpace.x, screenSpace.y, false);
+                    stickyVehicleRef[i] = CPools::ms_pVehiclePool->GetRef(nearestVehicle[i]);
+                }
+            }
+        }
+    }
+
+    static bool isIconCandidate(CVehicle* vehicle, short playaModel)
+    {
+        if (vehicle->m_nModelIndex == playaModel || vehicle->m_fHealth <= 0.f || vehicle->m_nAreaCode != 0)
+        {
+            return false;
+        }
+
+        if (ExportVehicles::isTrackedVehicle(vehicle))
+        {
+            return false; // handled by the spawn loop
+        }
+
+        const CVector& vehiclePos = vehicle->GetPosition();
+        if (ExportVehicles::isAtOwnSpawn(vehicle->m_nModelIndex, vehiclePos.x, vehiclePos.y))
+        {
+            return false; // spawn marker is already drawn there
+        }
+
+        return true;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     static void drawMapTags(const CVector& playaPos, bool showHeight)
@@ -563,6 +715,37 @@ private:
                 CRadar::ShowRadarTraceWithHeight(screenSpace.x, screenSpace.y, 1,
                     Settings::s_colorUSJ.r, Settings::s_colorUSJ.g, Settings::s_colorUSJ.b, Settings::s_colorUSJ.a, mode);
             }
+        }
+    }
+
+    static void drawMapExports()
+    {
+        if (!Settings::s_drawExportVehicles)
+        {
+            return;
+        }
+
+        static CVector2D radarSpace, screenSpace;
+
+        CVehicle* playaVehicle = FindPlayerVehicle(-1, false);
+        const short playaModel = playaVehicle != nullptr ? playaVehicle->m_nModelIndex : -1;
+
+        for (int i = 0; i < ExportVehicles::TOTAL_SPAWNS; i++)
+        {
+            if (!ExportVehicles::s_wanted[i] || ExportVehicles::s_spawns[i].model == playaModel)
+            {
+                continue;
+            }
+
+            const CVehicle* tracked = ExportVehicles::s_vehicles[i];
+
+            const CVector2D worldPos = tracked != nullptr
+                ? tracked->GetPosition().To2D()
+                : CVector2D(ExportVehicles::s_spawns[i].x, ExportVehicles::s_spawns[i].y);
+
+            CRadar::TransformRealWorldPointToRadarSpace(radarSpace, worldPos);
+            CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
+            drawExportIcon(screenSpace.x, screenSpace.y, true);
         }
     }
 } collectiblesOnRadar;
