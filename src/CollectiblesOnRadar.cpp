@@ -617,9 +617,10 @@ private:
             return false; // spawn marker is already drawn there
         }
 
-        // traffic behind the camera despawns quickly, so its icons only confuse
+        // distant traffic behind the camera despawns quickly, so its icons only
+        // confuse; nearby vehicles stay in memory, so they keep theirs
         const CVector2D toVehicle((vehiclePos - TheCamera.GetPosition()).To2D());
-        if (TheCamera.GetForward().To2D().Dot(toVehicle) < 0.f)
+        if (TheCamera.GetForward().To2D().Dot(toVehicle) < 0.f && toVehicle.Magnitude() > 50.f)
         {
             return false;
         }
