@@ -78,7 +78,8 @@
       <ImportLibrary>output\asi\CollectiblesOnRadar.SA.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>copy /y "$(TargetPath)" "$(GTA_SA_DIR)\scripts\CollectiblesOnRadar.SA.asi"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -100,7 +101,8 @@
       <ImportLibrary>output\asi\CollectiblesOnRadar.SA.lib</ImportLibrary>
     </Link>
     <PostBuildEvent>
-      <Command>copy /y "$(TargetPath)" "$(GTA_SA_DIR)\scripts\CollectiblesOnRadar.SA.asi"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
