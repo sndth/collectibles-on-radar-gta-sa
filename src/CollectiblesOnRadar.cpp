@@ -6,6 +6,7 @@
 #include "CMenuManager.h" // FrontEndMenuManager.drawRadarOrMap
 #include "CPickups.h"
 #include "CRadar.h"
+#include "CTheScripts.h" // CTheScripts::IsPlayerOnAMission
 #include "CTimer.h" // CTimer::m_snTimeInMilliseconds
 
 #include "Util.h"
@@ -52,6 +53,12 @@ public:
         {
             CPlayerPed* playa = FindPlayerPed();
             if (!s_modEnabled || !playa || !Settings::s_drawExportVehicles)
+            {
+                return;
+            }
+
+            // the export script empties the wanted list during missions anyway
+            if (CTheScripts::IsPlayerOnAMission())
             {
                 return;
             }
