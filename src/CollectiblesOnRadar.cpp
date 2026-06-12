@@ -593,7 +593,7 @@ private:
         const float bob = 0.25f * std::sin(CTimer::m_snTimeInMilliseconds * 0.006f);
 
         CVector posn = vehicle->GetPosition();
-        posn.z += vehicle->GetColModel()->m_boundBox.m_vecMax.z + 1.5f + bob;
+        posn.z += vehicle->GetColModel()->m_boundBox.m_vecMax.z + 2.5f + bob;
 
         C3dMarkers::PlaceMarkerSet(0x45585000 + spawnIndex, MARKER3D_ARROW, posn, 1.5f,
             0, 128, 255, 200, 1024, 0.2f, 0);
