@@ -41,16 +41,33 @@ public:
             }
         };
 
+        // fires after the gang overlay, before the game's own blips - so the
+        // export icons end up underneath the player marker and the waypoint
+        plugin::Events::drawRadarOverlayEvent += []
+        {
+            CPlayerPed* playa = FindPlayerPed();
+            if (!s_modEnabled || !playa || !Settings::s_drawExportVehicles)
+            {
+                return;
+            }
+
+            ExportVehicles::update();
+
+            if (FrontEndMenuManager.m_bDrawRadarOrMap) // map
+            {
+                drawMapExports();
+            }
+            else if (playa->m_nAreaCode == 0) // radar
+            {
+                drawRadarExports(FindPlayerCentreOfWorld_NoSniperShift(0));
+            }
+        };
+
         plugin::Events::drawBlipsEvent += []
         {
             CPlayerPed* playa = FindPlayerPed();
             if (s_modEnabled && playa)
             {
-                if (Settings::s_drawExportVehicles)
-                {
-                    ExportVehicles::update();
-                }
-
                 const CVector& playaPos = FindPlayerCentreOfWorld_NoSniperShift(0);
                 if (!FrontEndMenuManager.m_bDrawRadarOrMap) // radar
                 {
@@ -59,7 +76,6 @@ public:
                         drawRadarTags(playaPos);
                         drawRadarPickups(playaPos); // oysters, horseshoes and snapshots
                         drawRadarUSJs(playaPos);
-                        drawRadarExports(playaPos);
                     }
                 }
                 else // map
@@ -68,7 +84,6 @@ public:
                     drawMapTags(playaPos, showHeight);
                     drawMapPickups(playaPos, showHeight); // oysters, horseshoes and snapshots
                     drawMapUSJs(playaPos, showHeight);
-                    drawMapExports();
                 }
             }
         };
