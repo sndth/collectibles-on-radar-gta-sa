@@ -52,6 +52,7 @@ bool Settings::s_drawDroppedWeapons = false;
 bool Settings::s_drawExportVehicles = false;
 unsigned short Settings::s_exportSpriteId = 55; // RADAR_SPRITE_IMPOUND
 int Settings::s_exportSpriteSize = 12;
+bool Settings::s_drawExportArrows = true;
 
 void Settings::read() {
     CIniReader iniReader("");
@@ -98,6 +99,8 @@ void Settings::read() {
 
     const int spriteSize = iniReader.ReadInteger(EXPORTS, "sprite_size", 12);
     s_exportSpriteSize = (spriteSize >= 4 && spriteSize <= 64) ? spriteSize : 12;
+
+    s_drawExportArrows = iniReader.ReadBoolean(EXPORTS, "show_arrows", true);
 }
 
 unsigned int Settings::toRGBA(const std::string& str, unsigned int defaultValue)

@@ -1,5 +1,6 @@
 #include "plugin.h"
 #include "common.h"
+#include "C3dMarkers.h" // arrows above traffic vehicles
 #include "CCamera.h" // TheCamera
 #include "CHud.h" // CHud::SetHelpMessage
 #include "CMenuManager.h" // FrontEndMenuManager.drawRadarOrMap
@@ -548,6 +549,7 @@ private:
                 {
                     CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
                     drawExportIcon(screenSpace.x, screenSpace.y, false);
+                    drawVehicleArrow(sticky, i);
                     stickyVehicleRef[i] = CPools::ms_pVehiclePool->GetRef(sticky);
                     continue;
                 }
@@ -560,10 +562,34 @@ private:
                 {
                     CRadar::TransformRadarPointToScreenSpace(screenSpace, radarSpace);
                     drawExportIcon(screenSpace.x, screenSpace.y, false);
+                    drawVehicleArrow(nearestVehicle[i], i);
                     stickyVehicleRef[i] = CPools::ms_pVehiclePool->GetRef(nearestVehicle[i]);
                 }
             }
         }
+    }
+
+    // a blue arrow above an iconed traffic vehicle, to tell it apart in dense
+    // traffic; parked spawns get none - their fixed locations are easy to spot
+    static void drawVehicleArrow(CVehicle* vehicle, int spawnIndex)
+    {
+        if (!Settings::s_drawExportArrows || vehicle->m_nCreatedBy != RANDOM_VEHICLE)
+        {
+            return;
+        }
+
+        if (vehicle->bHasBeenOwnedByPlayer)
+        {
+            return; // the player has already driven it - no need to point at it
+        }
+
+        const float bob = 0.25f * std::sin(CTimer::m_snTimeInMilliseconds * 0.006f);
+
+        CVector posn = vehicle->GetPosition();
+        posn.z += vehicle->GetColModel()->m_boundBox.m_vecMax.z + 1.5f + bob;
+
+        C3dMarkers::PlaceMarkerSet(0x45585000 + spawnIndex, MARKER3D_ARROW, posn, 1.5f,
+            0, 128, 255, 200, 1024, 0.2f, 0);
     }
 
     static bool isIconCandidate(CVehicle* vehicle, short playaModel)

@@ -55,6 +55,7 @@ public:
     static bool s_drawExportVehicles;
     static unsigned short s_exportSpriteId;
     static int s_exportSpriteSize;
+    static bool s_drawExportArrows;
 
 public:
     static void read();
