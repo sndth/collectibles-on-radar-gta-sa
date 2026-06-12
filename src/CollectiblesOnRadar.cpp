@@ -10,6 +10,11 @@
 #include "Settings.h"
 #include "ExportVehicles.h"
 
+// the same hook points as plugin's drawBlipsEvent, but with PRIORITY_BEFORE -
+// whatever is drawn here ends up above the radar ring, below every game blip
+static plugin::CdeclEvent<plugin::AddressList<0x58AA2D, plugin::H_JUMP, 0x575B44, plugin::H_CALL>,
+    plugin::PRIORITY_BEFORE, plugin::ArgPickNone, void()> drawBeforeBlipsEvent;
+
 class CollectiblesOnRadar
 {
 private:
@@ -41,9 +46,7 @@ public:
             }
         };
 
-        // fires after the gang overlay, before the game's own blips - so the
-        // export icons end up underneath the player marker and the waypoint
-        plugin::Events::drawRadarOverlayEvent += []
+        drawBeforeBlipsEvent += []
         {
             CPlayerPed* playa = FindPlayerPed();
             if (!s_modEnabled || !playa || !Settings::s_drawExportVehicles)
