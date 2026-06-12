@@ -1,5 +1,6 @@
 #include "plugin.h"
 #include "common.h"
+#include "CCamera.h" // TheCamera
 #include "CHud.h" // CHud::SetHelpMessage
 #include "CMenuManager.h" // FrontEndMenuManager.drawRadarOrMap
 #include "CPickups.h"
@@ -581,6 +582,13 @@ private:
         if (ExportVehicles::isAtOwnSpawn(vehicle->m_nModelIndex, vehiclePos.x, vehiclePos.y))
         {
             return false; // spawn marker is already drawn there
+        }
+
+        // traffic behind the camera despawns quickly, so its icons only confuse
+        const CVector2D toVehicle((vehiclePos - TheCamera.GetPosition()).To2D());
+        if (TheCamera.GetForward().To2D().Dot(toVehicle) < 0.f)
+        {
+            return false;
         }
 
         return true;
